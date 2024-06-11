@@ -4,7 +4,7 @@ module sent_tx_gen_ticks(
 	output reg ticks_o
 	);
 
-	localparam divide = 50;
+	localparam divide = 60;
 	reg [15:0] counter = 0;
 
 	always @(posedge clk_tx or negedge reset_n_tx) begin

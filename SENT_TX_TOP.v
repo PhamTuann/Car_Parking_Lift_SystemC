@@ -19,7 +19,6 @@ module sent_tx_top(
 	wire [2:0] enable_crc_gen_io;
 	wire [23:0] data_gen_crc_io;
 	wire [5:0] crc_gen_io;
-	wire [1:0] crc_gen_done_io;
 
 	//gen ticks block <-> pulse gen block
 	wire ticks_io;
@@ -31,7 +30,7 @@ module sent_tx_top(
 	wire pause_io;
 	wire pulse_done_io;
 	wire idle_io;
-
+	wire [1:0] done;
 	//data reg block <-> control block
 	wire [2:0] load_bit_io;
 	wire done_pre_data_io;
@@ -72,7 +71,6 @@ module sent_tx_top(
 		//signals to crc block
 		.enable_crc_gen_o(enable_crc_gen_io),
 		.data_gen_crc_o(data_gen_crc_io),
-		.crc_gen_done_i(crc_gen_done_io),
 		.crc_gen_i(crc_gen_io),
 
 		//signals to pulse gen block
@@ -82,7 +80,7 @@ module sent_tx_top(
 		.sync_o(sync_io),
 		.pause_o(pause_io),
 		.idle_o(idle_io),
-	
+		.done(done),
 		//signals to data reg block
 		.data_f1_i(data_f1_io),
 		.data_f2_i(data_f2_io),
@@ -91,6 +89,7 @@ module sent_tx_top(
 	);
 
 	sent_tx_pulse_gen sent_tx_pulse_gen(
+		.clk_tx(clk_tx),
 		//clk_tx and reset_n_tx
 		.ticks_i(ticks_io),
 		.reset_n_tx(reset_n_tx),
@@ -119,6 +118,6 @@ module sent_tx_top(
 		.crc_gen_o(crc_gen_io),
 		.enable_crc_gen_i(enable_crc_gen_io),
 		.data_gen_crc_i(data_gen_crc_io),
-		.crc_gen_done_o(crc_gen_done_io)
+		.done(done)
 	);
 endmodule

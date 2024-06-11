@@ -42,7 +42,7 @@ module test_top;
 	initial begin
 		clk_tx = 0;
 		forever begin
-			clk_tx = #2 ~clk_tx;
+			clk_tx = #6 ~clk_tx;
 		end		
 	end
 	initial begin
@@ -540,7 +540,7 @@ module test_top;
 		//transmit data 8
 		#2
 		PADDR_i = 3;
-		PWDATA_i = 8'h55;
+		PWDATA_i = 8'h05;
 		PWRITE_i = 1; 
 		PSELx_i = 1;
 		#2
@@ -592,7 +592,52 @@ module test_top;
 		#2
 		PENABLE_i = 0;
 		PSELx_i = 0;
-		#1000000;
-		$finish;
+		#5000000;
+		//transmit data 8
+		//transmit data 8
+		#2
+		PADDR_i = 3;
+		PWDATA_i = 8'h58;
+		PWRITE_i = 1; 
+		PSELx_i = 1;
+		#2
+		PENABLE_i = 1;
+		#2
+		PENABLE_i = 0;
+		PSELx_i = 0;
+		//transmit data 8
+		#2
+		PADDR_i = 4;
+		PWDATA_i = 16'h0002;
+		PWRITE_i = 1; 
+		PSELx_i = 1;
+		#2
+		PENABLE_i = 1;
+		#2
+		PENABLE_i = 0;
+		PSELx_i = 0;
+		#10
+		PADDR_i = 1;
+		PWDATA_i = 8'b11110000;
+		PWRITE_i = 1; 
+		PSELx_i = 1;
+		#2
+		PENABLE_i = 1;
+		#2
+		PENABLE_i = 0;
+		PSELx_i = 0;
+		//transmit data 8
+		#10
+		PADDR_i = 1;
+		PWDATA_i = 8'b11100000;
+		PWRITE_i = 1; 
+		PSELx_i = 1;
+		#2
+		PENABLE_i = 1;
+		#2
+		PENABLE_i = 0;
+		PSELx_i = 0;
+		#5000000;
+	 		$finish;
 	end   
 endmodule

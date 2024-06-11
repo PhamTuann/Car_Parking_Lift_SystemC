@@ -7,134 +7,90 @@ module sent_tx_crc_gen(
 	input [2:0] enable_crc_gen_i,
 	input [23:0] data_gen_crc_i,
 	output reg [5:0] crc_gen_o,
-	output reg [1:0] crc_gen_done_o
+	output reg [1:0] done
 	);
 
-	reg [35:0] temp_data;
-	reg [2:0] state;
-    	reg [6:0] p;
-	reg [4:0] poly4 = 5'b11101;
-	reg [6:0] poly6 = 7'b1011001;
+	reg [5:0] lfsr_q; //current state
+	reg [5:0] lfsr_c; //next state
+	always @(*) begin
+		case(enable_crc_gen_i)
+		3'b001: begin
+			lfsr_c[0] = lfsr_q[0] ^ data_gen_crc_i[22] ^ data_gen_crc_i[21] ^ data_gen_crc_i[17] ^ 
+				data_gen_crc_i[15] ^ data_gen_crc_i[14] ^ data_gen_crc_i[10] ^ data_gen_crc_i[8] ^
+				data_gen_crc_i[7] ^ data_gen_crc_i[3] ^ data_gen_crc_i[1] ^ data_gen_crc_i[0];
+
+			lfsr_c[1] = lfsr_q[3] ^ data_gen_crc_i[23] ^ data_gen_crc_i[22] ^ data_gen_crc_i[18] ^ 
+					data_gen_crc_i[16] ^ data_gen_crc_i[15] ^ data_gen_crc_i[11] ^ data_gen_crc_i[9] ^ 
+					data_gen_crc_i[8] ^ data_gen_crc_i[4] ^ data_gen_crc_i[2] ^ data_gen_crc_i[1]; 
+
+			lfsr_c[2] = lfsr_q[0] ^ lfsr_q[2] ^ data_gen_crc_i[23] ^ data_gen_crc_i[22] ^ data_gen_crc_i[21] ^ 
+					data_gen_crc_i[19] ^ data_gen_crc_i[16] ^ data_gen_crc_i[15] ^ data_gen_crc_i[14] ^ 
+					data_gen_crc_i[12] ^ data_gen_crc_i[9] ^ data_gen_crc_i[7] ^ data_gen_crc_i[5] ^
+					data_gen_crc_i[2] ^ data_gen_crc_i[1] ^ data_gen_crc_i[0]; 
+	
+			lfsr_c[3] =  lfsr_q[1] ^ data_gen_crc_i[23] ^ data_gen_crc_i[21] ^ data_gen_crc_i[20] ^ 
+					data_gen_crc_i[16] ^ data_gen_crc_i[14] ^ data_gen_crc_i[13] ^ data_gen_crc_i[9] ^ 
+					data_gen_crc_i[7] ^ data_gen_crc_i[6] ^ data_gen_crc_i[2] ^ data_gen_crc_i[0];
+			lfsr_c[5:4] = 2'b00;
+		end
+		//check lai
+		3'b100, 3'b011: begin
+			lfsr_c[0] = lfsr_q[1] ^ lfsr_q[2] ^ data_gen_crc_i[10] ^ data_gen_crc_i[8] ^ 
+					data_gen_crc_i[7] ^ data_gen_crc_i[3] ^ data_gen_crc_i[1] ^ data_gen_crc_i[0] ;
+
+			lfsr_c[1] = lfsr_q[1] ^ data_gen_crc_i[11] ^ data_gen_crc_i[9] ^ data_gen_crc_i[8] ^ 
+					data_gen_crc_i[4] ^ data_gen_crc_i[2] ^ data_gen_crc_i[1] ;
+
+			lfsr_c[2] = lfsr_q[0] ^ lfsr_q[1] ^ lfsr_q[2] ^ data_gen_crc_i[9] ^ data_gen_crc_i[8] ^ 
+					data_gen_crc_i[7] ^ data_gen_crc_i[5] ^ data_gen_crc_i[2] ^ data_gen_crc_i[1] ^ data_gen_crc_i[0]  ;
+	
+			lfsr_c[3] =  lfsr_q[2] ^ lfsr_q[3] ^ data_gen_crc_i[9] ^ data_gen_crc_i[7] ^ 
+					data_gen_crc_i[6] ^ data_gen_crc_i[2] ^ data_gen_crc_i[0];
+			lfsr_c[5:4] = 2'b00;
+		end
+		3'b010: begin
+			lfsr_c[0] = lfsr_q[3] ^ data_gen_crc_i[15] ^ data_gen_crc_i[14] ^ data_gen_crc_i[10] ^ data_gen_crc_i[8] 
+					^ data_gen_crc_i[7] ^ data_gen_crc_i[3] ^ data_gen_crc_i[1] ^ data_gen_crc_i[0] ;
+
+			lfsr_c[1] = lfsr_q[0] ^ lfsr_q[2] ^ data_gen_crc_i[15] ^ data_gen_crc_i[11] ^ data_gen_crc_i[9] 
+					^ data_gen_crc_i[8] ^ data_gen_crc_i[4] ^ data_gen_crc_i[2] ^ data_gen_crc_i[1]; 
+
+			lfsr_c[2] = lfsr_q[0] ^ lfsr_q[1] ^ data_gen_crc_i[15] ^ data_gen_crc_i[14] ^ data_gen_crc_i[12] 
+					^ data_gen_crc_i[9] ^ data_gen_crc_i[8] ^ data_gen_crc_i[7] ^ data_gen_crc_i[3] 
+					^ data_gen_crc_i[2] ^ data_gen_crc_i[1] ^ data_gen_crc_i[0]; 
+	
+			lfsr_c[3] =  lfsr_q[0] ^ data_gen_crc_i[14] ^ data_gen_crc_i[13] ^ data_gen_crc_i[9] 
+					^ data_gen_crc_i[7] ^ data_gen_crc_i[6] ^ data_gen_crc_i[2] ^ data_gen_crc_i[0];
+			lfsr_c[5:4] = 2'b00;
+		end
+		3'b101: begin
+			lfsr_c[0] = data_gen_crc_i[6] ^ data_gen_crc_i[11] ^ data_gen_crc_i[4] ^ data_gen_crc_i[16] ^ data_gen_crc_i[9] ^ data_gen_crc_i[17] ^ data_gen_crc_i[2] ^ data_gen_crc_i[14] ^ data_gen_crc_i[7] ^ lfsr_q[1] ^ data_gen_crc_i[3] ^ data_gen_crc_i[22] ^ data_gen_crc_i[15] ^ data_gen_crc_i[21] ^ data_gen_crc_i[0] ;
+			lfsr_c[1] = data_gen_crc_i[7] ^ data_gen_crc_i[12] ^ data_gen_crc_i[5] ^ data_gen_crc_i[17] ^ data_gen_crc_i[10] ^ data_gen_crc_i[18] ^ data_gen_crc_i[3] ^ data_gen_crc_i[15] ^ data_gen_crc_i[8] ^ lfsr_q[2] ^ data_gen_crc_i[4] ^ data_gen_crc_i[23] ^ data_gen_crc_i[16] ^ data_gen_crc_i[22] ^ data_gen_crc_i[1] ;
+			lfsr_c[2] = data_gen_crc_i[8] ^ data_gen_crc_i[13] ^ data_gen_crc_i[6] ^ data_gen_crc_i[18] ^ data_gen_crc_i[11] ^ data_gen_crc_i[19] ^ data_gen_crc_i[4] ^ data_gen_crc_i[16] ^ data_gen_crc_i[9] ^ lfsr_q[3] ^ data_gen_crc_i[5] ^ lfsr_q[0] ^ data_gen_crc_i[17] ^ data_gen_crc_i[23] ^ data_gen_crc_i[2] ;
+			lfsr_c[3] = data_gen_crc_i[11] ^ data_gen_crc_i[4] ^ data_gen_crc_i[16] ^ data_gen_crc_i[2] ^ data_gen_crc_i[22] ^ data_gen_crc_i[15] ^ data_gen_crc_i[21] ^ data_gen_crc_i[0] ^ data_gen_crc_i[19] ^ data_gen_crc_i[12] ^ data_gen_crc_i[20] ^ data_gen_crc_i[5] ^ data_gen_crc_i[10] ^ lfsr_q[4] ^ data_gen_crc_i[18] ^ lfsr_q[0] ;
+			lfsr_c[4] = data_gen_crc_i[4] ^ data_gen_crc_i[9] ^ data_gen_crc_i[2] ^ data_gen_crc_i[14] ^ data_gen_crc_i[7] ^ data_gen_crc_i[15] ^ data_gen_crc_i[0] ^ data_gen_crc_i[12] ^ data_gen_crc_i[5] ^ data_gen_crc_i[23] ^ data_gen_crc_i[1] ^ data_gen_crc_i[20] ^ data_gen_crc_i[13] ^ lfsr_q[5] ^ data_gen_crc_i[19] ;
+			lfsr_c[5] = data_gen_crc_i[5] ^ data_gen_crc_i[10] ^ data_gen_crc_i[3] ^ data_gen_crc_i[15] ^ data_gen_crc_i[8] ^ data_gen_crc_i[16] ^ data_gen_crc_i[1] ^ data_gen_crc_i[13] ^ data_gen_crc_i[6] ^ lfsr_q[0] ^ data_gen_crc_i[2] ^ data_gen_crc_i[21] ^ data_gen_crc_i[14] ^ data_gen_crc_i[20] ;
+		end			
+		default: lfsr_c = lfsr_q;
+		endcase
+	end
 
 	always @(posedge clk_tx or negedge reset_n_tx) begin
 		if(!reset_n_tx) begin
-			state <= 0;
-			temp_data <= 0;
-			p <= 0;
-			crc_gen_done_o <= 0;
+			lfsr_q <= 6'b010101;
+			crc_gen_o <=0;
+			done <= 0;
 		end
 		else begin
-			case(state)
-					0: begin
-						
-						if(enable_crc_gen_i != 3'b000) begin
-							state <= 1;
-							
-						end
-					end
-					1: begin
-						state <= 2;
-						case(enable_crc_gen_i)
-							3'b001: begin
-								p <= 31;
-        							temp_data <= {4'b0101, data_gen_crc_i, 4'b0};
-							end
-							3'b010: begin
-								p <= 23;
-        							temp_data <= {4'b0101, data_gen_crc_i[15:0], 4'b0};
-							end
-							3'b011: begin
-								p <= 19;
-        							temp_data <= {4'b0101, data_gen_crc_i[11:0], 4'b0};
-							end
-							3'b100: begin
-								p <= 19;
-        							temp_data <= {4'b0101, data_gen_crc_i[11:0], 4'b0};
-							end
-							3'b101: begin
-								p <= 35;
-        							temp_data <= {6'b010101, data_gen_crc_i, 6'b0};
-							end
-						endcase
-					end
-					2: begin
-						if(enable_crc_gen_i == 3'b001 || enable_crc_gen_i == 3'b010 || enable_crc_gen_i == 3'b011 ||
-							enable_crc_gen_i == 3'b100 ) begin
-							if (p > 3) begin
-            							if (temp_data[p] == 1'b1) begin
-              	  							temp_data[p-0] <= temp_data[p-0] ^ 1;
-                							temp_data[p-1] <= temp_data[p-1] ^ poly4[3];
-                							temp_data[p-2] <= temp_data[p-2] ^ poly4[2];
-                							temp_data[p-3] <= temp_data[p-3] ^ poly4[1];
-                							temp_data[p-4] <= temp_data[p-4] ^ poly4[0];
-            							end
-            							else begin
-                							p <= p - 1;
-            							end
-
-        						end
-							else begin
-								state <= 3;
-							end
-						end
-						else if (enable_crc_gen_i == 3'b101) begin
-							if (p > 5) begin
-            							if (temp_data[p] == 1'b1) begin
-              	  							temp_data[p-0] <= temp_data[p-0] ^ 1;
-                							temp_data[p-1] <= temp_data[p-1] ^ poly6[5];
-                							temp_data[p-2] <= temp_data[p-2] ^ poly6[4];
-                							temp_data[p-3] <= temp_data[p-3] ^ poly6[3];
-                							temp_data[p-4] <= temp_data[p-4] ^ poly6[2];
-									temp_data[p-5] <= temp_data[p-5] ^ poly6[1];
-									temp_data[p-6] <= temp_data[p-6] ^ poly6[0];
-            							end
-            							else begin
-                							p = p - 1;
-            							end
-
-        						end
-							else begin
-								state <= 3;
-							end
-						end
-					end
-					3: begin
-						state <= 4;
-						if(enable_crc_gen_i == 3'b001 || enable_crc_gen_i == 3'b010 || enable_crc_gen_i == 3'b011) begin
-							crc_gen_o[5:4] <= 2'b00;
-        						crc_gen_o[3] <= temp_data[3];
-        						crc_gen_o[2] <= temp_data[2];
-        						crc_gen_o[1] <= temp_data[1];
-        						crc_gen_o[0] <= temp_data[0];
-							crc_gen_done_o <= 2'b01;
-						
-						end
-						else if (enable_crc_gen_i == 3'b101) begin
-							crc_gen_o[5] <= temp_data[5];
-        						crc_gen_o[4] <= temp_data[4];
-        						crc_gen_o[3] <= temp_data[3];
-        						crc_gen_o[2] <= temp_data[2];
-        						crc_gen_o[1] <= temp_data[1];
-        						crc_gen_o[0] <= temp_data[0];
-							crc_gen_done_o <= 2'b11;
-						end
-						else if(enable_crc_gen_i == 3'b100) begin
-							crc_gen_o[5:4] <= 2'b00;
-        						crc_gen_o[3] <= temp_data[3];
-        						crc_gen_o[2] <= temp_data[2];
-        						crc_gen_o[1] <= temp_data[1];
-        						crc_gen_o[0] <= temp_data[0];
-							crc_gen_done_o <= 2'b10;
-						
-						end
-					end
-					4: begin
-						state <= 0;
-						temp_data <= 0;
-						crc_gen_done_o <= 0;
-					end
-					default: state <= 0;
-			endcase
+			if(enable_crc_gen_i != 0) begin
+				crc_gen_o <= lfsr_c;
+				lfsr_q <= 6'b010101;
+				done <= 1;
+			end
+			if(enable_crc_gen_i == 3'b101) begin
+				done <= 2'b10;
+			end
+			if(done != 0) done <= 0;
 		end
 	end
 	

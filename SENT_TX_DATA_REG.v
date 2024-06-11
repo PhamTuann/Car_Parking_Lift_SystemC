@@ -17,11 +17,8 @@ module sent_tx_data_reg(
 
 	reg [4:0] count_enable;
 	reg [2:0] count_store;
-
 	reg [11:0] saved_data1;
 	reg [11:0] saved_data2;
-
-
 	//CONTROL
 	always @(posedge clk_tx or negedge reset_n_tx) begin
 		if(!reset_n_tx) begin
@@ -81,25 +78,26 @@ module sent_tx_data_reg(
 		end
 	end
 
+	
 	//DATA
-	always @(posedge clk_tx or negedge reset_n_tx) begin
-		if(!reset_n_tx) begin
-			data_f1_o <= 0;
-			data_f2_o <= 0;
-		end
-		else begin
+	always @(*) begin
 			//data fast channel 1
 			if(done_pre_data_o) begin 
 				case(load_bit_i)
-					3'b001: begin data_f1_o <= saved_data1; data_f2_o <= saved_data2; end
-					3'b010: begin data_f1_o <= saved_data1; end
-					3'b011: begin data_f1_o <= saved_data1; end
-					3'b100: begin data_f1_o <= saved_data1; end
-					3'b101: begin data_f1_o <= saved_data1; end
-					3'b110: begin data_f1_o <= {saved_data1, saved_data2[11:10]}; data_f2_o <= saved_data2[9:0]; end
-					3'b111: begin data_f1_o <= {saved_data1, saved_data2[11:8]}; data_f2_o <= saved_data2[7:0]; end
+					3'b001: begin data_f1_o = saved_data1; data_f2_o = saved_data2; end
+					3'b010: begin data_f1_o = saved_data1; data_f2_o = 0; end
+					3'b011: begin data_f1_o = saved_data1; data_f2_o = 0; end
+					3'b100: begin data_f1_o = saved_data1; data_f2_o = 0; end
+					3'b101: begin data_f1_o = saved_data1; data_f2_o = 0; end
+					3'b110: begin data_f1_o = {saved_data1, saved_data2[11:10]}; data_f2_o = saved_data2[9:0]; end
+					3'b111: begin data_f1_o = {saved_data1, saved_data2[11:8]}; data_f2_o = saved_data2[7:0]; end
+					default: begin data_f1_o = 0; data_f2_o = 0; end
 				endcase
 			end
+			else begin 
+				data_f1_o = 0;
+				data_f2_o = 0;
+			end
 		end
-	end
+	
 endmodule
