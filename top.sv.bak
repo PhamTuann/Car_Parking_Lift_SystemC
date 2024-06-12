@@ -1,0 +1,52 @@
+`ifndef P
+`define P
+`timescale 1ns/1ns
+`include "packet.sv"
+`include "interface.sv"
+`include "driver.sv"
+`include "environment.sv"
+`include "assertion.sv"
+  
+
+module testtop;
+    	reg PCLK = 1;
+    	reg clk_tx = 1;
+	reg clk_rx = 1;
+	
+    	initial begin
+      		forever #1 PCLK = ~PCLK;
+ 	end
+
+	initial begin
+      		forever #6 clk_tx = ~clk_tx;
+ 	end  
+
+	initial begin
+      		forever #2 clk_rx = ~clk_rx;
+ 	end
+
+
+    	INTF intf(PCLK, clk_tx, clk_rx);
+    
+    	top DUT
+    	(
+        	.PCLK(intf.PCLK),
+		.PRESETn(intf.PRESETn),
+		.PADDR_i(intf.PADDR_i),
+		.PWDATA_i(intf.PWDATA_i),
+		.PWRITE_i(intf.PWRITE_i),
+		.PSELx_i(intf.PSELx_i),
+		.PENABLE_i(intf.PENABLE_i),
+		.PRDATA_o(intf.PRDATA_o),
+		.PREADY_o(intf.PREADY_o),
+		.data_o(intf.data_o),
+		.valid(intf.valid),
+		.clk_tx(intf.clk_tx),
+		.clk_rx(intf.clk_rx)
+    	);
+   	testcase test(intf);
+
+    	assertion_cov acov(intf);
+    	
+endmodule
+`endif 
